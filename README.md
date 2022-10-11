@@ -1,4 +1,5 @@
 # Notes for myself
+support page <https://www.rtklib.com/rtklib_support.htm>
 ## RTKLIB 2.4.3
 * Make sure you check off 'copy the master branch only' when you fork.
 * `git checkout rtklib_2.4.3`
