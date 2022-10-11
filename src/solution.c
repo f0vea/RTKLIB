@@ -1146,9 +1146,12 @@ static int outecef(uint8_t *buff, const char *s, const sol_t *sol,
     
     trace(3,"outecef:\n");
     
-    p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f%s%3d%s%3d%s%8.4f%s%8.4f%s%8.4f%s"
+    p+=sprintf(p,"%s%s%14.4f%s%14.4f%s%14.4f%s%2.8f%s%2.8f%s%2.8f%s%3d%s%3d%s%8.4f%s%8.4f%s%8.4f%s"
                "%8.4f%s%8.4f%s%8.4f%s%6.2f%s%6.1f",
-               s,sep,sol->rr[0],sep,sol->rr[1],sep,sol->rr[2],sep,sol->stat,sep,
+               s,sep,
+               sol->rr[0],sep,sol->rr[1],sep,sol->rr[2], sep,
+               sol->rr[3],sep,sol->rr[4],sep,sol->rr[5], sep,
+               sol->stat,sep,
                sol->ns,sep,SQRT(sol->qr[0]),sep,SQRT(sol->qr[1]),sep,
                SQRT(sol->qr[2]),sep,sqvar(sol->qr[3]),sep,sqvar(sol->qr[4]),sep,
                sqvar(sol->qr[5]),sep,sol->age,sep,sol->ratio);
@@ -1506,7 +1509,7 @@ extern int outsolheads(uint8_t *buff, const solopt_t *opt)
     }
     if (opt->outhead) {
         p+=sprintf(p,"%s (",COMMENTH);
-        if      (opt->posf==SOLF_XYZ) p+=sprintf(p,"x/y/z-ecef=WGS84");
+        if      (opt->posf==SOLF_XYZ) p+=sprintf(p,"x/y/z-ecef,vx/vy/vz-ecef=WGS84");
         else if (opt->posf==SOLF_ENU) p+=sprintf(p,"e/n/u-baseline=WGS84");
         else p+=sprintf(p,"lat/lon/height=%s/%s",s1[opt->datum],s2[opt->height]);
         p+=sprintf(p,",%s,%s)\r\n",leg1,leg2);
@@ -1538,9 +1541,10 @@ extern int outsolheads(uint8_t *buff, const solopt_t *opt)
         }
     }
     else if (opt->posf==SOLF_XYZ) { /* x/y/z-ecef */
-        p+=sprintf(p,"%14s%s%14s%s%14s%s%3s%s%3s%s%8s%s%8s%s%8s%s%8s%s%8s%s%8s"
-                   "%s%6s%s%6s",
-                   "x-ecef(m)",sep,"y-ecef(m)",sep,"z-ecef(m)",sep,"Q",sep,"ns",
+        p+=sprintf(p,"%14s%s%14s%s%14s%s%8s%s%8s%s%8s%s%3s%s%3s%s%8s%s%8s%s%8s%s%8s%s%8s%s%8s%s%6s%s%6s\n",
+                   "x-ecef(m)",sep,"y-ecef(m)",sep,"z-ecef(m)",sep,
+                   "vx-ecef(m)",sep,"vy-ecef(m)",sep,"vz-ecef(m)",sep,
+                   "Q",sep,"ns",
                    sep,"sdx(m)",sep,"sdy(m)",sep,"sdz(m)",sep,"sdxy(m)",sep,
                    "sdyz(m)",sep,"sdzx(m)",sep,"age(s)",sep,"ratio");
         
