@@ -349,8 +349,21 @@ static void procpos(FILE *fp, const prcopt_t *popt, const solopt_t *sopt,
         for (i=n=0;i<nobs;i++) {
             if ((satsys(obs[i].sat,NULL)&popt->navsys)&&
                 popt->exsats[obs[i].sat-1]!=1) obs[n++]=obs[i];
+            else{
+                printf("%d-th meas, PRN%02d ignored\n", i, obs[i].sat);
+            }
         }
         if (n<=0) continue;
+
+        const int print_available_obs = 0;
+        if(print_available_obs){
+            printf("Counter%02d, nobs %02d ", counter, nobs);
+            printf(" observation includes ");
+            for(i = 0; i < nobs; i++){
+                printf("G%02d ", obs[i].sat);
+            }
+            printf("\n");
+        }
         
         /* carrier-phase bias correction */
         if (!strstr(popt->pppopt,"-ENA_FCB")) {

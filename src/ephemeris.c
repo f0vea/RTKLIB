@@ -229,12 +229,15 @@ extern void eph2pos(gtime_t time, const eph_t *eph, double *rs, double *dts,
         return;
     }
     tk=timediff(time,eph->toe);
+    const double dte = tk;
     
     switch ((sys=satsys(eph->sat,&prn))) {
         case SYS_GAL: mu=MU_GAL; omge=OMGE_GAL; break;
         case SYS_CMP: mu=MU_CMP; omge=OMGE_CMP; break;
         default:      mu=MU_GPS; omge=OMGE;     break;
     }
+    /* n_0 = sqrt(mu/(A*A*A)) */
+    /* n = n_0 + deln */
     M=eph->M0+(sqrt(mu/(eph->A*eph->A*eph->A))+eph->deln)*tk;
     
     for (n=0,E=M,Ek=0.0;fabs(E-Ek)>RTOL_KEPLER&&n<MAX_ITER_KEPLER;n++) {
@@ -248,6 +251,7 @@ extern void eph2pos(gtime_t time, const eph_t *eph, double *rs, double *dts,
     
     trace(4,"kepler: sat=%2d e=%8.5f n=%2d del=%10.3e\n",eph->sat,eph->e,n,E-Ek);
     
+    /* true anomaly. this is phi = nu + eph->omg */
     u=atan2(sqrt(1.0-eph->e*eph->e)*sinE,cosE-eph->e)+eph->omg;
     r=eph->A*(1.0-eph->e*cosE);
     i=eph->i0+eph->idot*tk;
@@ -255,6 +259,7 @@ extern void eph2pos(gtime_t time, const eph_t *eph, double *rs, double *dts,
     u+=eph->cus*sin2u+eph->cuc*cos2u;
     r+=eph->crs*sin2u+eph->crc*cos2u;
     i+=eph->cis*sin2u+eph->cic*cos2u;
+    /* x, y: positions in orbit */
     x=r*cos(u); y=r*sin(u); cosi=cos(i);
     
     /* beidou geo satellite */

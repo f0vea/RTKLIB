@@ -137,7 +137,7 @@ static double prange(const obsd_t *obs, const nav_t *nav, const prcopt_t *opt,
         *var=SQR(ERR_CBIAS);
         
         if (sys==SYS_GPS||sys==SYS_QZS) { /* L1 */
-            b1=gettgd(sat,nav,0); /* TGD (m) */
+            b1=gettgd(sat,nav,0); /* TGD (m), broadcast tgd * wgs84::c */
             return P1-b1;
         }
         else if (sys==SYS_GLO) { /* G1 */
@@ -257,48 +257,94 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
     for (i=0;i<3;i++) rr[i]=x[i];
     dtr=x[3];
     
-    ecef2pos(rr,pos);
+    ecef2pos(rr,pos); /* rr: ECEF, pos: LLA */
     
+    const int print_excluded_satellite_with_reason = 0;
     for (i=*ns=0;i<n&&i<MAXOBS;i++) {
         vsat[i]=0; azel[i*2]=azel[1+i*2]=resp[i]=0.0;
         time=obs[i].time;
         sat=obs[i].sat;
-        if (!(sys=satsys(sat,NULL))) continue;
+        if (!(sys=satsys(sat,NULL))){
+            if(print_excluded_satellite_with_reason){
+                printf("iter%d: PRN%02d rejected due to satsys\n", iter, obs[i].sat);
+            }
+            continue;
+        }
         
         /* reject duplicated observation data */
         if (i<n-1&&i<MAXOBS-1&&sat==obs[i+1].sat) {
             trace(2,"duplicated obs data %s sat=%d\n",time_str(time,3),sat);
             i++;
+            if(print_excluded_satellite_with_reason){
+                printf("iter%d: PRN%02d rejected due to duplicated data\n", iter, obs[i].sat);
+            }
             continue;
         }
         /* excluded satellite? */
-        if (satexclude(sat,vare[i],svh[i],opt)) continue;
+        /* ephemeris not available or broadcast sv status invalid */
+        if (satexclude(sat,vare[i],svh[i],opt)){
+            if(print_excluded_satellite_with_reason){
+                printf("iter%d: PRN%02d rejected due to satexclude\n", iter, obs[i].sat);
+            }
+            continue;
+        }
         
         /* geometric distance */
-        if ((r=geodist(rs+i*6,rr,e))<=0.0) continue;
+        if ((r=geodist(rs+i*6,rr,e))<=0.0){ /* e is LOS vector, output of this func */
+            if(print_excluded_satellite_with_reason){
+                printf("iter%d: PRN%02d rejected due to geodist\n", iter, obs[i].sat);
+            }
+            continue;
+        }
         
         if (iter>0) {
             /* test elevation mask */
-            if (satazel(pos,e,azel+i*2)<opt->elmin) continue;
+            if (satazel(pos,e,azel+i*2)<opt->elmin){
+                if(print_excluded_satellite_with_reason){
+                    printf("iter%d: PRN%02d rejected due to elev\n", iter, obs[i].sat);
+                }
+                continue;
+            }
             
             /* test SNR mask */
-            if (!snrmask(obs+i,azel+i*2,opt)) continue;
+            if (!snrmask(obs+i,azel+i*2,opt)){ 
+                if(print_excluded_satellite_with_reason){
+                    printf("iter%d: PRN%02d rejected due to C/N0\n", iter, obs[i].sat);
+                }
+                continue;
+            }
             
             /* ionospheric correction */
             if (!ionocorr(time,nav,sat,pos,azel+i*2,opt->ionoopt,&dion,&vion)) {
+                if(print_excluded_satellite_with_reason){
+                    printf("iter%d: PRN%02d rejected due to ionospheric\n", iter, obs[i].sat);
+                }
                 continue;
             }
-            if ((freq=sat2freq(sat,obs[i].code[0],nav))==0.0) continue;
+            if ((freq=sat2freq(sat,obs[i].code[0],nav))==0.0){
+                if(print_excluded_satellite_with_reason){
+                    printf("iter%d: PRN%02d rejected due to sat2freq\n", iter, obs[i].sat);
+                }
+                continue;
+            }
             dion*=SQR(FREQ1/freq);
             vion*=SQR(FREQ1/freq);
             
             /* tropospheric correction */
             if (!tropcorr(time,nav,pos,azel+i*2,opt->tropopt,&dtrp,&vtrp)) {
+                if(print_excluded_satellite_with_reason){
+                    printf("iter%d: PRN%02d rejected due to tropospheric\n", iter, obs[i].sat);
+                }
                 continue;
             }
         }
         /* psendorange with code bias correction */
-        if ((P=prange(obs+i,nav,opt,&vmeas))==0.0) continue;
+        if ((P=prange(obs+i,nav,opt,&vmeas))==0.0){
+            if(print_excluded_satellite_with_reason){
+                printf("iter%d: PRN%02d rejected due to group delay\n", iter, obs[i].sat);
+            }
+            continue;
+        }
         
         /* pseudorange residual */
         v[nv]=P-(r+dtr-CLIGHT*dts[i*2]+dion+dtrp);
