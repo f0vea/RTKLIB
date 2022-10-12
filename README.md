@@ -1,5 +1,8 @@
 # Notes for myself
+
 support page <https://www.rtklib.com/rtklib_support.htm>
+
+If you use 2.4.3, the latest patch rtklib_2.4.3_p10.zip is older than the latest commit of 2.4.3 (b34), and there should be no need to use a patch.
 ## RTKLIB 2.4.3
 * Make sure you check off 'copy the master branch only' when you fork.
 * `git checkout rtklib_2.4.3`
@@ -16,7 +19,11 @@ function name (file name)
 
 ```
 rnx2rtpk (app/consapprnx2rtkp/rnx2rtkp.c)
-    postpos
+    postpos (src/postpos.c)
+    execses_b
+    execses_r
+    execses
+    procpos
         rtkpos
             pntpos (pntpos.c)
                 satposs (ephemeris.c)
