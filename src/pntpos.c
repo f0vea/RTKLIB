@@ -321,6 +321,10 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
                 }
                 continue;
             }
+
+            /* For non-GLONASS, the following just finds a pair to the obs code
+             * (e.g., 1->1C) and their frequency. Unless, the obs is labeled incorrectly,
+             * it should never fail */
             if ((freq=sat2freq(sat,obs[i].code[0],nav))==0.0){
                 if(print_excluded_satellite_with_reason){
                     printf("iter%d: PRN%02d rejected due to sat2freq\n", iter, obs[i].sat);

@@ -560,8 +560,9 @@ extern int testsnr(int base, int idx, double el, double snr,
     
     if (!mask->ena[base]||idx<0||idx>=NFREQ) return 0;
     
-    a=(el*R2D+5.0)/10.0;
+    a=(el*R2D+5.0)/10.0; /* R2D: rad 2 degree */
     i=(int)floor(a); a-=i;
+
     if      (i<1) minsnr=mask->mask[idx][0];
     else if (i>8) minsnr=mask->mask[idx][8];
     else minsnr=(1.0-a)*mask->mask[idx][i-1]+a*mask->mask[idx][i];
@@ -601,7 +602,11 @@ static int code2freq_GPS(uint8_t code, double *freq)
     char *obs=code2obs(code);
     
     switch (obs[0]) {
-        case '1': *freq=FREQ1; return 0; /* L1 */
+        case '1': {
+                      *freq=FREQ1; 
+                      /*printf("Code %d obs %s freq %f\n", code, obs, *freq); */
+                      return 0; /* L1 */
+                  }
         case '2': *freq=FREQ2; return 1; /* L2 */
         case '5': *freq=FREQ5; return 2; /* L5 */
     }

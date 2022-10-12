@@ -347,10 +347,31 @@ static void procpos(FILE *fp, const prcopt_t *popt, const solopt_t *sopt,
         
         /* exclude satellites */
         for (i=n=0;i<nobs;i++) {
+            /*
+             * SYS_GPS 1
+             * SYS_SBS 2
+             * SYS_GLO 4
+             * SYS_GAL 8 */
+            /* satsys returns an integer where each bit represents a
+             * usable system; e.g., LSB is GPS. */
             if ((satsys(obs[i].sat,NULL)&popt->navsys)&&
                 popt->exsats[obs[i].sat-1]!=1) obs[n++]=obs[i];
             else{
-                printf("%d-th meas, PRN%02d ignored\n", i, obs[i].sat);
+                const int print_excluded_obs = 0;
+                if(print_excluded_obs){
+                    const int sys_id = satsys(obs[i].sat, NULL);
+                    char sys_id_str[4];
+                    if(sys_id == SYS_GPS){
+                        strcpy(sys_id_str, "GPS");
+                    }else if(sys_id == SYS_SBS){
+                        strcpy(sys_id_str, "SBS");
+                    }else if(sys_id == SYS_GLO){
+                        strcpy(sys_id_str, "GLO");
+                    }else if(sys_id == SYS_GAL){
+                        strcpy(sys_id_str, "GAL");
+                    }
+                    printf("%s %d-th meas, PRN%02d ignored\n", sys_id_str, i, obs[i].sat);
+                }
             }
         }
         if (n<=0) continue;
