@@ -161,10 +161,10 @@ extern void alm2pos(gtime_t time, const alm_t *alm, double *rs, double *dts)
     }
     mu=satsys(alm->sat,NULL)==SYS_GAL?MU_GAL:MU_GPS;
     
-    // Solve Kepler's equation for E
+    /* Solve Kepler's equation for E */
     M=alm->M0+sqrt(mu/(alm->A*alm->A*alm->A))*tk;
     for (n=0,E=M,Ek=0.0;fabs(E-Ek)>RTOL_KEPLER&&n<MAX_ITER_KEPLER;n++) {
-        // Newton-Raphson algorithm
+        /* Newton-Raphson algorithm */
         Ek=E; E-=(E-alm->e*sin(E)-M)/(1.0-alm->e*cos(E));
     }
     if (n>=MAX_ITER_KEPLER) {

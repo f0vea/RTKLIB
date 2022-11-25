@@ -261,7 +261,8 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
     
     const int print_excluded_satellite_with_reason = 0;
     for (i=*ns=0;i<n&&i<MAXOBS;i++) {
-        vsat[i]=0; azel[i*2]=azel[1+i*2]=resp[i]=0.0;
+        vsat[i]=0; /* vsat is set to zero initially, and if it meets all criteria to be used for PVT, it's set to one */
+        azel[i*2]=azel[1+i*2]=resp[i]=0.0;
         time=obs[i].time;
         sat=obs[i].sat;
         if (!(sys=satsys(sat,NULL))){
@@ -367,7 +368,8 @@ static int rescode(int iter, const obsd_t *obs, int n, const double *rs,
 #endif
         else mask[0]=1;
         
-        vsat[i]=1; resp[i]=v[nv]; (*ns)++;
+        vsat[i]=1; /* vsat is set to zero initially, and if it meets all criteria to be used for PVT, it's set to one */ 
+        resp[i]=v[nv]; (*ns)++;
         
         /* variance of pseudorange error */
         var[nv++]=varerr(opt,azel[1+i*2],sys)+vare[i]+vmeas+vion+vtrp;
@@ -408,6 +410,7 @@ static int valsol(const double *azel, const int *vsat, int n,
         ns++;
     }
     dops(ns,azels,opt->elmin,dop);
+    /* maxgdop is set to 30 by default, look at src/rtkcmn.c */
     if (dop[0]<=0.0||dop[0]>opt->maxgdop) {
         sprintf(msg,"gdop error nv=%d gdop=%.1f",nv,dop[0]);
         return 0;
@@ -519,6 +522,9 @@ static int raim_fde(const obsd_t *obs, int n, const double *rs,
         }
         for (j=nvsat=0,rms_e=0.0;j<n-1;j++) {
             if (!vsat_e[j]) continue;
+            /* resp_e is the raw residual coming from positioning least square 
+             * v stores the residual corresponding to H matrix, but resp is
+             * per satellite */
             rms_e+=SQR(resp_e[j]);
             nvsat++;
         }

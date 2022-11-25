@@ -189,6 +189,10 @@ static double leaps[MAXLEAPS+1][7]={ /* leap seconds (y,m,d,h,m,s,utc-gpst) */
     {1981,7,1,0,0,0, -1},
     {0}
 };
+
+/* The following is chi2 values for 1-100 DOF for
+ * the surviving probability of 0.001, which is equivalent to
+ * python's scipy.stats.chi2.isf(0.001, DOF) */
 const double chisqr[100]={      /* chi-sqr(n) (alpha=0.001) */
     10.8,13.8,16.3,18.5,20.5,22.5,24.3,26.1,27.9,29.6,
     31.3,32.9,34.5,36.1,37.7,39.3,40.8,42.3,43.8,45.3,
