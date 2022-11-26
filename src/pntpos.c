@@ -398,7 +398,11 @@ static int valsol(const double *azel, const int *vsat, int n,
     
     /* Chi-square validation of residuals */
     vv=dot(v,v,nv);
-    if (nv>nx&&vv>chisqr[nv-nx-1]) {
+    if (nv>nx&&vv>chisqr[nv-nx-1]) { 
+        /* DOF of chi2 in least square estimation is:
+         * number of satellites used for positioning - number of states to estimate; and,
+         * chisqr stores the values with zero-based, meaning DOF1 is stored at chisqr[0] */
+
         sprintf(msg,"chi-square error nv=%d vv=%.1f cs=%.1f",nv,vv,chisqr[nv-nx-1]);
         return 0;
     }
