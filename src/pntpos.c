@@ -401,7 +401,10 @@ static int valsol(const double *azel, const int *vsat, int n,
     if (nv>nx&&vv>chisqr[nv-nx-1]) { 
         /* DOF of chi2 in least square estimation is:
          * number of satellites used for positioning - number of states to estimate; and,
-         * chisqr stores the values with zero-based, meaning DOF1 is stored at chisqr[0] */
+         * chisqr stores the values with zero-based, meaning DOF1 is stored at chisqr[0].
+         * v is already scaled by standard deviation of pseudorange to run
+         * weighted least square. It's equivalent to compare unscaled w^Tw with
+         * chi2 * sigma_URA * sigma_URA */
 
         sprintf(msg,"chi-square error nv=%d vv=%.1f cs=%.1f",nv,vv,chisqr[nv-nx-1]);
         return 0;
@@ -605,6 +608,12 @@ static int resdop(const obsd_t *obs, int n, const double *rs, const double *dts,
         sig=(err<=0.0)?1.0:err*CLIGHT/freq;
         
         /* range rate residual (m/s) */
+        // obs pseduorange rate = -Doppler * c / f
+        // estimate pseudorange rate = 
+        // LOS unit vec' (e) * (v_e_e2sv - v_e_e2rc) 
+        // + sagnac rate 
+        // + receiver clock bias 
+        // - c * sv_clock bias
         v[nv]=(-obs[i].D[0]*CLIGHT/freq-(rate+x[3]-CLIGHT*dts[1+i*2]))/sig;
         
         /* design matrix */
