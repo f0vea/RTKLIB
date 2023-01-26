@@ -608,12 +608,12 @@ static int resdop(const obsd_t *obs, int n, const double *rs, const double *dts,
         sig=(err<=0.0)?1.0:err*CLIGHT/freq;
         
         /* range rate residual (m/s) */
-        // obs pseduorange rate = -Doppler * c / f
-        // estimate pseudorange rate = 
-        // LOS unit vec' (e) * (v_e_e2sv - v_e_e2rc) 
-        // + sagnac rate 
-        // + receiver clock bias 
-        // - c * sv_clock bias
+        /* obs pseduorange rate = -Doppler * c / f
+         estimate pseudorange rate = 
+         LOS unit vec' (e) * (v_e_e2sv - v_e_e2rc) 
+         + sagnac rate 
+         + receiver clock bias 
+         - c * sv_clock bias */
         v[nv]=(-obs[i].D[0]*CLIGHT/freq-(rate+x[3]-CLIGHT*dts[1+i*2]))/sig;
         
         /* design matrix */
