@@ -287,7 +287,19 @@ extern void eph2pos(gtime_t time, const eph_t *eph, double *rs, double *dts,
     *dts=eph->f0+eph->f1*tk+eph->f2*tk*tk;
     
     /* relativity correction */
+    /* This sin(E) is computed based on mean motion using
+     * TOE. Don't we need to recompute E based on the TOC? 
+     * or relativistic effect is a function of motion, and
+     * TOE based sin(E) is more accurate? */
     *dts-=2.0*sqrt(mu*eph->A)*eph->e*sinE/SQR(CLIGHT);
+
+    const int32_t save_satellite_pos_and_bias_to_csv = 0;
+    if(save_satellite_pos_and_bias_to_csv){
+        FILE* file = fopen("posbias_rtklib.csv", "a");
+        fprintf(file, "PRN,%02d,time,%f,pos,%f,%f,%f,bias,%f\n", eph->sat, time.time + time.sec,
+                rs[0], rs[1], rs[2], *dts);
+        fclose(file);
+    }
     
     /* position and clock error variance */
     *var=var_uraeph(sys,eph->sva);
