@@ -296,8 +296,8 @@ extern void eph2pos(gtime_t time, const eph_t *eph, double *rs, double *dts,
     const int32_t save_satellite_pos_and_bias_to_csv = 0;
     if(save_satellite_pos_and_bias_to_csv){
         FILE* file = fopen("posbias_rtklib.csv", "a");
-        fprintf(file, "PRN,%02d,time,%f,pos,%f,%f,%f,bias,%f\n", eph->sat, time.time + time.sec,
-                rs[0], rs[1], rs[2], *dts);
+        fprintf(file, "PRN,%02d,time,%10.20f,pos,%f,%f,%f,bias,%10.10e,dt_e,%f,M0,%1.15f,M,%1.20f,E,%1.20f,u,%1.8f,r,%1.8f,i,%1.8f,x,%f,y,%f,dt_c,%f,IODE,%d, IODC,%d\n", eph->sat, time.time + time.sec,
+                rs[0], rs[1], rs[2], *dts, dte, eph->M0, M, E, u, r, i, x, y, tk, eph->iode, eph->iodc);
         fclose(file);
     }
     
